@@ -9,6 +9,11 @@ class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
 
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
     def __str__(self):
         return self.name
 
@@ -16,6 +21,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=100)
     measurement_unit = models.CharField(max_length=50)
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
         return self.name
@@ -47,6 +57,8 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-created',)
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
     def __str__(self):
         return self.name
@@ -84,9 +96,12 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='in_favorites'
     )
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         unique_together = ('user', 'recipe')
+        verboose_name = 'Избранное'
+        verboose_name_plural = 'Избранное'
 
 
 class ShoppingCart(models.Model):
@@ -99,3 +114,5 @@ class ShoppingCart(models.Model):
 
     class Meta:
         unique_together = ('user', 'recipe')
+        verboose_name = 'Корзина'
+        verboose_name_plural = 'Корзина'
