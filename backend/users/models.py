@@ -3,29 +3,12 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    first_name = models.CharField(
-        max_length=20,
-        verbose_name='Имя',
-    )
-    last_name = models.CharField(
-        max_length=20,
-        verbose_name='Фамилия',
-    )
-    username = models.CharField(
-        max_length=20,
-        verbose_name='Имя пользователя',
-        unique=True,
-    )
-    email = models.EmailField(
-        max_length=75,
-        unique=True,
-        verbose_name='Почта',
-    )
     avatar = models.ImageField(
         upload_to='users/',
         blank=True, null=True,
         verbose_name='Аватар',
     )
+    email = models.EmailField('Почта', unique=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', ]

@@ -100,8 +100,8 @@ class Favorite(models.Model):
 
     class Meta:
         unique_together = ('user', 'recipe')
-        verboose_name = 'Избранное'
-        verboose_name_plural = 'Избранное'
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
 
 
 class ShoppingCart(models.Model):
@@ -114,5 +114,5 @@ class ShoppingCart(models.Model):
 
     class Meta:
         unique_together = ('user', 'recipe')
-        verboose_name = 'Корзина'
-        verboose_name_plural = 'Корзина'
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
