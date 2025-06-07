@@ -86,12 +86,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         allow_empty=False,
     )
     image = Base64ImageField(required=True)
-    name = serializers.CharField(required=True, allow_blank=False, max_length=256)
+    name = serializers.CharField(
+        required=True, allow_blank=False, max_length=256)
     text = serializers.CharField(required=True, allow_blank=False)
 
     class Meta:
         model = Recipe
-        fields = ("ingredients", "tags", "image", "name", "text", "cooking_time")
+        fields = (
+            "ingredients", "tags", "image", "name", "text", "cooking_time")
 
     def validate_ingredients(self, data):
 
@@ -101,12 +103,15 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 'Каждый ингредиент должен иметь ключ "id".'
             )
         if len(ids) != len(set(ids)):
-            raise serializers.ValidationError("Ингредиенты должны быть уникальными.")
+            raise serializers.ValidationError(
+                "Ингредиенты должны быть уникальными.")
         if not Ingredient.objects.filter(id__in=ids).count() == len(ids):
-            raise serializers.ValidationError("Указан несуществующий ингредиент.")
+            raise serializers.ValidationError(
+                "Указан несуществующий ингредиент.")
         for item in data:
             if "amount" not in item:
-                raise serializers.ValidationError("Укажите количество ингредиента.")
+                raise serializers.ValidationError(
+                    "Укажите количество ингредиента.")
             if not isinstance(item["amount"], int) or item["amount"] < 1:
                 raise serializers.ValidationError(
                     'Поле "amount" должно быть целым ≥ 1.'
@@ -132,7 +137,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.filter(recipe=instance).delete()
         for item in validated_data.pop("ingredients"):
             RecipeIngredient.objects.create(
-                recipe=instance, ingredient_id=item["id"], amount=item["amount"]
+                recipe=instance,
+                ingredient_id=item["id"],
+                amount=item["amount"]
             )
         return super().update(instance, validated_data)
 

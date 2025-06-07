@@ -35,18 +35,20 @@ class RecipeInlineFilter(FilterSet):
         fields = ["author", "tags", "is_favorited", "is_in_shopping_cart"]
 
     def filter_favorited(self, queryset, name, value):
+        some = ["true", "1"]
         user = self.request.user
         if not user.is_authenticated:
-            return queryset.none() if str(value).lower() in ["true", "1"] else queryset
-        if value == 1 or str(value).lower() in ["true", "1"]:
+            return queryset.none() if str(value).lower() in some else queryset
+        if value == 1 or str(value).lower() in some:
             return queryset.filter(in_favorites__user=user)
         return queryset
 
     def filter_in_cart(self, queryset, name, value):
+        some = ["true", "1"]
         user = self.request.user
         if not user.is_authenticated:
-            return queryset.none() if str(value).lower() in ["true", "1"] else queryset
-        if value == 1 or str(value).lower() in ["true", "1"]:
+            return queryset.none() if str(value).lower() in some else queryset
+        if value == 1 or str(value).lower() in some:
             return value
         return queryset
 
@@ -113,7 +115,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         recipe = serializer.save()
         out = RecipeListSerializer(recipe, context={"request": request})
@@ -187,8 +190,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         data = request.user.get_shopping_list()
         txt = "\n".join(
             [
-                f"{item['name']} ({item['measurement_unit']}) — {item['total']}"
-                for item in data
+                f"{it['name']} ({it['measurement_unit']}) — {it['total']}"
+                for it in data
             ]
         )
         return Response(txt, content_type="text/plain")

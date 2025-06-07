@@ -46,7 +46,8 @@ class UserViewSet(
                     {"detail": "recipes_limit должен быть целым числом."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        queryset = Subscription.objects.filter(user=user).select_related("author")
+        queryset = Subscription.objects.filter(
+            user=user).select_related("author")
         page = self.paginate_queryset([sub.author for sub in queryset])
         data = []
         for author in page:
@@ -74,7 +75,11 @@ class UserViewSet(
             return CustomUserCreateSerializer
         return CustomUserResponseSerializer
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[IsAuthenticated]
+    )
     def me(self, request):
         serializer = CustomUserResponseSerializer(
             request.user, context={"request": request}
@@ -108,7 +113,9 @@ class UserViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-        detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated]
+        detail=True,
+        methods=["post", "delete"],
+        permission_classes=[IsAuthenticated]
     )
     def subscribe(self, request, pk=None):
         author = get_object_or_404(User, pk=pk)
@@ -131,7 +138,8 @@ class UserViewSet(
             truncated, many=True, context={"request": request}
         ).data
 
-        data = CustomUserResponseSerializer(author, context={"request": request}).data
+        data = CustomUserResponseSerializer(
+            author, context={"request": request}).data
         data["recipes"] = recipes_data
         data["recipes_count"] = author.recipes.count()
 
@@ -146,7 +154,8 @@ class UserViewSet(
             )
             if not created:
                 return Response(
-                    {"detail": "Вы уже подписаны."}, status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Вы уже подписаны."},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
             data = CustomUserResponseSerializer(
                 author, context={"request": request}
@@ -162,7 +171,8 @@ class UserViewSet(
         ).delete()
         if not deleted:
             return Response(
-                {"detail": "Вы не были подписаны."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Вы не были подписаны."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
