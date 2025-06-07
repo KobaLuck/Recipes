@@ -9,6 +9,7 @@ class User(AbstractUser):
         verbose_name='Аватар',
     )
     email = models.EmailField('Почта', unique=True)
+    id = models.AutoField(primary_key=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', ]
@@ -19,6 +20,26 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def get_shopping_list(self):
+        from recipes.models import RecipeIngredient
+
+        ingredient_qs = RecipeIngredient.objects.filter(
+            recipe__in_carts__user=self
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            total_amount=models.Sum('amount')
+        )
+        result = []
+        for item in ingredient_qs:
+            result.append({
+                'name': item['ingredient__name'],
+                'measurement_unit': item['ingredient__measurement_unit'],
+                'total': item['total_amount']
+            })
+        return result
 
 
 class Subscription(models.Model):

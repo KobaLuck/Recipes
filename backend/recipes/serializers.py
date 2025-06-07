@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from .models import Tag, Ingredient, Recipe, RecipeIngredient
+from users.serializers import Base64ImageField
 from django.contrib.auth import get_user_model
 from users.serializers import CustomUserResponseSerializer
 
@@ -40,7 +42,9 @@ class RecipeListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = CustomUserResponseSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(
-        source='recipe_ingredients', many=True
+        source='recipe_ingredients',
+        many=True,
+        read_only=True
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -67,9 +71,23 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    ingredients = serializers.ListField(child=serializers.DictField())
-    tags = serializers.ListField(child=serializers.IntegerField())
-    image = serializers.CharField()
+    ingredients = serializers.ListField(
+        child=serializers.DictField(),
+        required=True,
+        allow_empty=False
+    )
+    tags = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=False,
+    )
+    image = Base64ImageField(required=True)
+    name = serializers.CharField(
+        required=True,
+        allow_blank=False,
+        max_length=256
+    )
+    text = serializers.CharField(required=True, allow_blank=False)
 
     class Meta:
         model = Recipe
@@ -78,11 +96,30 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate_ingredients(self, data):
-        ids = [i['id'] for i in data]
+
+        ids = [item.get('id') for item in data]
+        if any(id_ is None for id_ in ids):
+            raise serializers.ValidationError(
+                'Каждый ингредиент должен иметь ключ "id".'
+            )
         if len(ids) != len(set(ids)):
             raise serializers.ValidationError(
-                'Ингредиенты должны быть уникальным'
+                'Ингредиенты должны быть уникальными.'
             )
+        if not Ingredient.objects.filter(id__in=ids).count() == len(ids):
+            raise serializers.ValidationError(
+                'Указан несуществующий ингредиент.'
+            )
+        for item in data:
+            if 'amount' not in item:
+                raise serializers.ValidationError(
+                    'Укажите количество ингредиента.'
+                )
+            if not isinstance(item['amount'], int) or item['amount'] < 1:
+                raise serializers.ValidationError(
+                    'Поле "amount" должно быть целым ≥ 1.'
+                )
+
         return data
 
     def create(self, validated_data):
@@ -110,3 +147,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 amount=item['amount']
             )
         return super().update(instance, validated_data)
+
+    def validate_tags(self, value):
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError(
+                'Теги должны быть уникальными.'
+            )
+        if Tag.objects.filter(id__in=value).count() != len(value):
+            raise serializers.ValidationError(
+                'Указан несуществующий тег.'
+            )
+        return value

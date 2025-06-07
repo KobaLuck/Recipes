@@ -11,14 +11,14 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+    list_display = ('name', 'slug', 'id')
     search_fields = ('name', 'slug')
     list_filter = ('name',)
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'favorites_count', 'created')
+    list_display = ('name', 'author', 'favorites_count', 'created', 'id')
     search_fields = ('name', 'author__username', 'author__email')
     list_filter = ('author', 'tags')
     readonly_fields = ('favorites_count',)

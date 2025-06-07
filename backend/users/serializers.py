@@ -1,15 +1,33 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+import base64
+from django.core.files.base import ContentFile
+
 
 User = get_user_model()
 
 
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:'):
+            header, base64_str = data.split(';base64,')
+            decoded_file = base64.b64decode(base64_str)
+            ext = header.split('/')[-1]
+            file_name = f"avatar_{self.context['request'].user.id}.{ext}"
+            data = ContentFile(decoded_file, name=file_name)
+        return super().to_internal_value(data)
+
+
 class CustomUserCreateSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(required=True, max_length=150)
+    last_name = serializers.CharField(required=True, max_length=150)
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name', 'last_name', 'password')
+        fields = ('id', 'email', 'username',
+                  'first_name', 'last_name', 'password')
+        read_only_fields = ('id',)
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
@@ -33,6 +51,8 @@ class CustomUserResponseSerializer(serializers.ModelSerializer):
 
 
 class SetAvatarSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField()
+
     class Meta:
         model = User
         fields = ('avatar',)

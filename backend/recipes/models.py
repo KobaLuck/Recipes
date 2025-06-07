@@ -1,6 +1,7 @@
-from django.contrib.auth import get_user_model
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
+from django.urls import reverse
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -63,6 +64,12 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
+    def get_short_link(self, request=None):
+        relative = reverse('short_link', kwargs={'recipe_id': self.id})
+        if request is not None:
+            return request.build_absolute_uri(relative)
+        return relative
+
 
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(
@@ -96,7 +103,6 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='in_favorites'
     )
-    id = models.AutoField(primary_key=True)
 
     class Meta:
         unique_together = ('user', 'recipe')

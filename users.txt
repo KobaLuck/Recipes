@@ -1,6 +1,0 @@
-superuser:
-    username: koba
-    password: 123
-
-users:
-    blank
