@@ -1,29 +1,19 @@
+from core.pagination import DefaultPagination
+from core.permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, status
+from django_filters import (BaseInFilter, BooleanFilter, CharFilter, FilterSet,
+                            ModelMultipleChoiceFilter, NumberFilter)
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django_filters import (
-    FilterSet,
-    CharFilter,
-    NumberFilter,
-    BaseInFilter,
-    BooleanFilter,
-    ModelMultipleChoiceFilter,
-)
-from django_filters.rest_framework import DjangoFilterBackend
 
-from core.pagination import DefaultPagination
-from core.permissions import IsAuthorOrReadOnly
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from .serializers import (
-    IngredientSerializer,
-    RecipeCreateUpdateSerializer,
-    RecipeListSerializer,
-    RecipeMinifiedSerializer,
-    TagSerializer,
-)
+from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
+                          RecipeListSerializer, RecipeMinifiedSerializer,
+                          TagSerializer)
 
 
 class CharInFilter(BaseInFilter, CharFilter):
@@ -31,34 +21,32 @@ class CharInFilter(BaseInFilter, CharFilter):
 
 
 class RecipeInlineFilter(FilterSet):
-    author = NumberFilter(field_name='author__id')
+    author = NumberFilter(field_name="author__id")
     tags = ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
+        field_name="tags__slug",
+        to_field_name="slug",
         queryset=Tag.objects.all(),
     )
-    is_favorited = BooleanFilter(method='filter_favorited')
-    is_in_shopping_cart = BooleanFilter(method='filter_in_cart')
+    is_favorited = BooleanFilter(method="filter_favorited")
+    is_in_shopping_cart = BooleanFilter(method="filter_in_cart")
 
     class Meta:
         model = Recipe
-        fields = ['author', 'tags', 'is_favorited', 'is_in_shopping_cart']
+        fields = ["author", "tags", "is_favorited", "is_in_shopping_cart"]
 
     def filter_favorited(self, queryset, name, value):
         user = self.request.user
         if not user.is_authenticated:
-            print(str(value).lower())
-            return queryset.none() if str(value).lower() in ['true', '1'] else queryset
-        if value == 1 or str(value).lower() in ['true', '1']:
+            return queryset.none() if str(value).lower() in ["true", "1"] else queryset
+        if value == 1 or str(value).lower() in ["true", "1"]:
             return queryset.filter(in_favorites__user=user)
         return queryset
 
     def filter_in_cart(self, queryset, name, value):
         user = self.request.user
         if not user.is_authenticated:
-            print(str(value).lower())
-            return queryset.none() if str(value).lower() in ['true', '1'] else queryset
-        if value == 1 or str(value).lower() in ['true', '1']:
+            return queryset.none() if str(value).lower() in ["true", "1"] else queryset
+        if value == 1 or str(value).lower() in ["true", "1"]:
             return value
         return queryset
 
@@ -74,11 +62,11 @@ class ShortLinkView(APIView):
 
 
 class IngredientFilter(FilterSet):
-    name = CharFilter(field_name='name', lookup_expr='istartswith')
+    name = CharFilter(field_name="name", lookup_expr="istartswith")
 
     class Meta:
         model = Ingredient
-        fields = ['name']
+        fields = ["name"]
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -104,14 +92,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeInlineFilter
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'get_link']:
+        if self.action in ["list", "retrieve", "get_link"]:
             return [AllowAny()]
-        if self.action in ['favorite', 'shopping_cart', 'create']:
+        if self.action in ["favorite", "shopping_cart", "create"]:
             return [IsAuthenticated()]
         return [IsAuthorOrReadOnly()]
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update', 'partial_update'):
+        if self.action in ("create", "update", "partial_update"):
             return RecipeCreateUpdateSerializer
         return RecipeListSerializer
 
@@ -119,47 +107,46 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         recipe = serializer.save()
-        out = RecipeListSerializer(recipe, context={'request': request})
+        out = RecipeListSerializer(recipe, context={"request": request})
         return Response(out.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         recipe = serializer.save()
-        out = RecipeListSerializer(recipe, context={'request': request})
+        out = RecipeListSerializer(recipe, context={"request": request})
         return Response(out.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
-        if 'tags' not in request.data:
+        if "tags" not in request.data:
             return Response(
-                {'tags': ['Это поле обязательно при обновлении.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {"tags": ["Это поле обязательно при обновлении."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        if 'ingredients' not in request.data:
+        if "ingredients" not in request.data:
             return Response(
-                {'ingredients': ['Это поле обязательно при обновлении.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {"ingredients": ["Это поле обязательно при обновлении."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         return super().partial_update(request, *args, **kwargs)
 
-    @action(detail=True, methods=['get'], url_path='get-link')
+    @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         absolute_url = request.build_absolute_uri(recipe.get_short_link())
-        return Response({'short-link': absolute_url})
+        return Response({"short-link": absolute_url})
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
+        methods=["post", "delete"],
     )
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        if request.method == 'POST':
+        if request.method == "POST":
             fav, created = Favorite.objects.get_or_create(
-                user=request.user,
-                recipe=recipe
+                user=request.user, recipe=recipe
             )
             if not created:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -172,14 +159,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         fav.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(
-        detail=True,
-        methods=['post', 'delete'],
-        url_path='shopping_cart'
-    )
+    @action(detail=True, methods=["post", "delete"], url_path="shopping_cart")
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        if request.method == 'POST':
+        if request.method == "POST":
             cart, created = ShoppingCart.objects.get_or_create(
                 user=request.user, recipe=recipe
             )
@@ -196,13 +179,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['get'],
+        methods=["get"],
         permission_classes=[IsAuthenticated],
-        url_path='download_shopping_cart'
+        url_path="download_shopping_cart",
     )
     def download_shopping_cart(self, request):
         data = request.user.get_shopping_list()
-        txt = '\n'.join(
-            [f"{item['name']} ({item['measurement_unit']}) — {item['total']}" for item in data]
+        txt = "\n".join(
+            [
+                f"{item['name']} ({item['measurement_unit']}) — {item['total']}"
+                for item in data
+            ]
         )
-        return Response(txt, content_type='text/plain')
+        return Response(txt, content_type="text/plain")
