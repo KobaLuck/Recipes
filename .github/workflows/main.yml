@@ -150,16 +150,6 @@ jobs:
         - deploy
         if: ${{ failure() }}
         steps:
-        - name: Determine failed jobs
-          id: detect
-          run: |
-            failed=""
-            for job in tests build_and_push_backend_to_docker_hub build_frontend_and_push_to_docker_hub build_gateway_and_push_to_docker_hub deploy; do
-            if [[ "${{ needs[$job].result }}" != "success" ]]; then
-                failed="$failed $job"
-            fi
-            done
-            echo "failed_jobs=$failed" >> $GITHUB_OUTPUT
         - name: Send failure message to Telegram
           uses: appleboy/telegram-action@master
           with:
