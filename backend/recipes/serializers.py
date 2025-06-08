@@ -112,7 +112,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             if "amount" not in item:
                 raise serializers.ValidationError(
                     "Укажите количество ингредиента.")
-            if not isinstance(item["amount"], int) or item["amount"] < 1:
+            if int(item["amount"]) < 1:
                 raise serializers.ValidationError(
                     'Поле "amount" должно быть целым ≥ 1.'
                 )
