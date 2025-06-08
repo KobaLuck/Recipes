@@ -36,8 +36,8 @@ class RecipeInlineFilter(FilterSet):
         if not user.is_authenticated:
             return queryset.none() if str(value).lower() in some else queryset
         if value in some:
-            return value
-        return queryset
+            return queryset.filter(in_carts__user=user)
+        return queryset.exclude(in_carts__user=user)
 
 
 class IngredientFilter(FilterSet):

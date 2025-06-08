@@ -4,16 +4,13 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from serializers.recipes import RecipeMinifiedSerializer
+from serializers.users import (CustomUserCreateSerializer,
+                               CustomUserResponseSerializer,
+                               PasswordChangeSerializer, SetAvatarSerializer)
+from users.models import Subscription
 
 from backend.api.pagination import DefaultPagination
-from users.models import Subscription
-from serializers.recipes import RecipeMinifiedSerializer
-from serializers.users import (
-    CustomUserCreateSerializer,
-    CustomUserResponseSerializer,
-    PasswordChangeSerializer,
-    SetAvatarSerializer
-)
 
 User = get_user_model()
 
