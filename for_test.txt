@@ -1,14 +1,8 @@
 superusers:
-    username: koba
-    mail: 1@g.com
-    password: 123
-
     username: 2@a.ru
     mail: same
     password: 123
-    {
-    "auth_token": "2c95b84ef1e823d4299ae9cae4bf75589dc2c6b2"
-    }
+    
 
 users:
     blank
