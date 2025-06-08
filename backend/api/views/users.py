@@ -1,16 +1,16 @@
+from api.pagination import DefaultPagination
+from api.serializers.recipes import RecipeMinifiedSerializer
+from api.serializers.users import (CustomUserCreateSerializer,
+                                   CustomUserResponseSerializer,
+                                   PasswordChangeSerializer,
+                                   SetAvatarSerializer)
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from serializers.recipes import RecipeMinifiedSerializer
-from serializers.users import (CustomUserCreateSerializer,
-                               CustomUserResponseSerializer,
-                               PasswordChangeSerializer, SetAvatarSerializer)
 from users.models import Subscription
-
-from backend.api.pagination import DefaultPagination
 
 User = get_user_model()
 

@@ -11,7 +11,7 @@ router.register(r'ingredients', IngredientViewSet, basename='ingredients')
 router.register(r'recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
-    path('', include(router.urls)),
-
     path('r/<int:recipe_id>/', ShortLinkView.as_view(), name='short_link'),
+
+    path('', include(router.urls)),
 ]
