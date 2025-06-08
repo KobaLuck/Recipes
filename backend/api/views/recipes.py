@@ -1,8 +1,6 @@
-from core.pagination import DefaultPagination
-from core.permissions import IsAuthorOrReadOnly
+from backend.api.pagination import DefaultPagination
+from backend.api.permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
-from django_filters import (BaseInFilter, BooleanFilter, CharFilter, FilterSet,
-                            ModelMultipleChoiceFilter, NumberFilter)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -10,47 +8,15 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
-                          RecipeListSerializer, RecipeMinifiedSerializer,
-                          TagSerializer)
-
-
-class CharInFilter(BaseInFilter, CharFilter):
-    pass
-
-
-class RecipeInlineFilter(FilterSet):
-    author = NumberFilter(field_name="author__id")
-    tags = ModelMultipleChoiceFilter(
-        field_name="tags__slug",
-        to_field_name="slug",
-        queryset=Tag.objects.all(),
-    )
-    is_favorited = BooleanFilter(method="filter_favorited")
-    is_in_shopping_cart = BooleanFilter(method="filter_in_cart")
-
-    class Meta:
-        model = Recipe
-        fields = ["author", "tags", "is_favorited", "is_in_shopping_cart"]
-
-    def filter_favorited(self, queryset, name, value):
-        some = ["true", "1"]
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none() if str(value).lower() in some else queryset
-        if value == 1 or str(value).lower() in some:
-            return queryset.filter(in_favorites__user=user)
-        return queryset
-
-    def filter_in_cart(self, queryset, name, value):
-        some = ["true", "1"]
-        user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none() if str(value).lower() in some else queryset
-        if value == 1 or str(value).lower() in some:
-            return value
-        return queryset
+from api.filters import IngredientFilter, RecipeInlineFilter
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from serializers.recipes import (
+    IngredientSerializer,
+    RecipeCreateUpdateSerializer,
+    RecipeListSerializer,
+    RecipeMinifiedSerializer,
+    TagSerializer
+)
 
 
 class ShortLinkView(APIView):
@@ -61,14 +27,6 @@ class ShortLinkView(APIView):
         relative = recipe.get_short_link()
         absolute = request.build_absolute_uri(relative)
         return Response({"short-link": absolute}, status=status.HTTP_200_OK)
-
-
-class IngredientFilter(FilterSet):
-    name = CharFilter(field_name="name", lookup_expr="istartswith")
-
-    class Meta:
-        model = Ingredient
-        fields = ["name"]
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
