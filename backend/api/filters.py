@@ -1,10 +1,8 @@
-from django_filters import (BaseInFilter, BooleanFilter, CharFilter, FilterSet,
-                            ModelMultipleChoiceFilter, NumberFilter)
+from django_filters import (
+    BooleanFilter, CharFilter, FilterSet,
+    ModelMultipleChoiceFilter, NumberFilter
+)
 from recipes.models import Ingredient, Recipe, Tag
-
-
-class CharInFilter(BaseInFilter, CharFilter):
-    pass
 
 
 class RecipeInlineFilter(FilterSet):
@@ -22,20 +20,18 @@ class RecipeInlineFilter(FilterSet):
         fields = ["author", "tags", "is_favorited", "is_in_shopping_cart"]
 
     def filter_favorited(self, queryset, name, value):
-        some = ["true", "1", "True", 1]
         user = self.request.user
         if not user.is_authenticated:
-            return queryset.none() if str(value).lower() in some else queryset
-        if value in some:
+            return queryset.none() if value else queryset
+        if value:
             return queryset.filter(in_favorites__user=user)
-        return queryset
+        return queryset.exclude(in_favorites__user=user)
 
     def filter_in_cart(self, queryset, name, value):
-        some = ["true", "1", "True", 1]
         user = self.request.user
         if not user.is_authenticated:
-            return queryset.none() if str(value).lower() in some else queryset
-        if value in some:
+            return queryset.none() if value else queryset
+        if value:
             return queryset.filter(in_carts__user=user)
         return queryset.exclude(in_carts__user=user)
 
