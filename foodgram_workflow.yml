@@ -4,6 +4,15 @@ on:
     push:
 
 jobs:
+    start_on_success:
+        runs-on: ubuntu-latest
+        steps:
+            - name: its ok
+              uses: appleboy/telegram-action@master
+              with:
+                to: ${{ secrets.TELEGRAM_TO }}
+                token: ${{ secrets.TELEGRAM_TOKEN }}
+                message: Ошибок в коде не обнаружено, workflow  успешно начал выполнение
     tests:
         runs-on: ubuntu-latest
         services:
@@ -112,7 +121,7 @@ jobs:
                 key: ${{ secrets.SSH_KEY }}
                 passphrase: ${{ secrets.SSH_PASSPHRASE }}
                 source: "docker-compose.production.yml"
-                target: "kittygram"
+                target: "foodgram"
             - name: Executing remote ssh comands to deploy
               uses: appleboy/ssh-action@master
               with:
@@ -121,7 +130,7 @@ jobs:
                 key: ${{ secrets.SSH_KEY }}
                 passphrase: ${{ secrets.SSH_PASSPHRASE }}
                 script: |
-                    cd kittygram
+                    cd foodgram
                     sudo docker compose -f docker-compose.production.yml pull
                     sudo docker compose -f docker-compose.production.yml down
                     sudo docker compose -f docker-compose.production.yml up -d
@@ -158,10 +167,8 @@ jobs:
             message: |
                 ❌ Ержан, вставай, братан, на работу пора
                 • Workflow: `${{ github.workflow }}`
-                • Job: `${{ github.job }}`
-                • Ref: `${{ github.ref }}`
-                • Commit: `${{ github.sha }}`
                 • Check run: ${{ github.run_id }}
                 • URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                • time: ${{ job.startedAt }}
             env:
             TZ: "Europe/Moscow"
