@@ -158,10 +158,8 @@ jobs:
             message: |
                 ❌ Ержан, вставай, братан, на работу пора
                 • Workflow: `${{ github.workflow }}`
-                • Job: `${{ github.job }}`
-                • Ref: `${{ github.ref }}`
-                • Commit: `${{ github.sha }}`
                 • Check run: ${{ github.run_id }}
                 • URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                • time: ${{ job.startedAt }}
             env:
             TZ: "Europe/Moscow"
