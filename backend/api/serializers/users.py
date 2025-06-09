@@ -2,12 +2,8 @@ from base64 import b64decode
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-
-from api.serializers.recipes import RecipeMinifiedSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import serializers
 
 User = get_user_model()
 
@@ -23,7 +19,7 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class CustomUserCreateSerializer(DjoserUserSerializer):
+class UserCreateSerializer(DjoserUserSerializer):
     class Meta(DjoserUserSerializer.Meta):
         model = User
         fields = (

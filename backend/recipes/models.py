@@ -3,16 +3,10 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
 
-from api.constants import (
-    IMAGE_UPLOAD_RECIPE,
-    MIN_AMOUNT,
-    MIN_COOK_TIME,
-    MAX_ING_NAME,
-    MAX_MEASUREMENT_UNIT,
-    MAX_RECIPE_NAME,
-    MAX_TAG_NAME,
-    MAX_SLUG_LENGTH,
-)
+from api.constants import (IMAGE_UPLOAD_RECIPE, MAX_ING_NAME,
+                           MAX_MEASUREMENT_UNIT, MAX_RECIPE_NAME,
+                           MAX_SLUG_LENGTH, MAX_TAG_NAME, MIN_AMOUNT,
+                           MIN_COOK_TIME)
 
 User = get_user_model()
 

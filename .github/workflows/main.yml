@@ -169,6 +169,5 @@ jobs:
                 • Workflow: `${{ github.workflow }}`
                 • Check run: ${{ github.run_id }}
                 • URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                • time: ${{ job.startedAt }}
             env:
             TZ: "Europe/Moscow"

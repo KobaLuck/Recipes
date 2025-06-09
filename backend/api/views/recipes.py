@@ -9,13 +9,10 @@ from rest_framework.views import APIView
 from api.filters import IngredientFilter, RecipeInlineFilter
 from api.pagination import DefaultPagination
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers.recipes import (
-    IngredientSerializer,
-    RecipeCreateUpdateSerializer,
-    RecipeListSerializer,
-    RecipeMinifiedSerializer,
-    TagSerializer,
-)
+from api.serializers.recipes import (IngredientSerializer,
+                                     RecipeCreateUpdateSerializer,
+                                     RecipeListSerializer,
+                                     RecipeMinifiedSerializer, TagSerializer)
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 
@@ -69,46 +66,52 @@ class RecipeViewSet(viewsets.ModelViewSet):
         absolute_url = request.build_absolute_uri(recipe.get_short_link())
         return Response({"short-link": absolute_url})
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(
+        detail=True, methods=["post", "delete"],
+        permission_classes=[IsAuthenticated]
+    )
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        serializer = serializers.Serializer(
-            data={"user": request.user.id, "recipe": recipe.id})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            RecipeMinifiedSerializer(
-                recipe, context={"request": request}
-            ).data, status=status.HTTP_201_CREATED)
 
-    @favorite.mapping.delete
-    def delete_favorite(self, request, pk=None):
-        deleted, _ = Favorite.objects.filter(
-            user=request.user, recipe_id=pk).delete()
-        if not deleted:
+        if request.method == "POST":
+            if Favorite.objects.filter(
+                user=request.user, recipe=recipe
+            ).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            fav = Favorite(user=request.user, recipe=recipe)
+            fav.save()
+            serializer = RecipeMinifiedSerializer(
+                recipe, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        deleted_count, _ = Favorite.objects.filter(
+            user=request.user, recipe=recipe).delete()
+        if not deleted_count:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-        detail=True, methods=["post"],
+        detail=True, methods=["post", "delete"],
         url_path="shopping_cart",
-        permission_classes=[IsAuthenticated])
-    def add_to_cart(self, request, pk=None):
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        serializer = serializers.Serializer(
-            data={"user": request.user.id, "recipe": recipe.id})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            RecipeMinifiedSerializer(
-                recipe, context={"request": request}
-            ).data, status=status.HTTP_201_CREATED)
 
-    @add_to_cart.mapping.delete
-    def delete_from_cart(self, request, pk=None):
-        deleted, _ = ShoppingCart.objects.filter(
-            user=request.user, recipe_id=pk).delete()
-        if not deleted:
+        if request.method == "POST":
+            if ShoppingCart.objects.filter(
+                user=request.user, recipe=recipe
+            ).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            cart_item = ShoppingCart(user=request.user, recipe=recipe)
+            cart_item.save()
+            data = RecipeMinifiedSerializer(
+                recipe, context={"request": request}).data
+            return Response(data, status=status.HTTP_201_CREATED)
+
+        deleted_count, _ = ShoppingCart.objects.filter(
+            user=request.user, recipe=recipe).delete()
+        if not deleted_count:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

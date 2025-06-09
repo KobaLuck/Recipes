@@ -1,16 +1,14 @@
-from django.shortcuts import get_object_or_404
-
 from django.contrib.auth import get_user_model
-from rest_framework import mixins, viewsets, status
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.pagination import DefaultPagination
 from api.serializers.users import (
-    CustomUserCreateSerializer,
+    UserCreateSerializer,
     UserResponseSerializer,
-    SubscriptionSerializer,
 )
 from users.models import Subscription
 
@@ -23,7 +21,6 @@ class UserViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Регистрация, просмотр профилей, подписки и свой профиль."""
     queryset = User.objects.all()
     pagination_class = DefaultPagination
 
@@ -34,9 +31,7 @@ class UserViewSet(
 
     def get_serializer_class(self):
         if self.action == "create":
-            return CustomUserCreateSerializer
-        if self.action == "subscriptions":
-            return SubscriptionSerializer
+            return UserCreateSerializer
         return UserResponseSerializer
 
     @action(
@@ -45,9 +40,9 @@ class UserViewSet(
         permission_classes=[IsAuthenticated]
     )
     def me(self, request):
-        """Профиль авторизованного пользователя."""
         serializer = UserResponseSerializer(
-            request.user, context={"request": request})
+            request.user, context={"request": request}
+        )
         return Response(serializer.data)
 
     @action(
@@ -57,15 +52,13 @@ class UserViewSet(
         permission_classes=[IsAuthenticated],
     )
     def subscriptions(self, request):
-        """
-        Список авторов, на которых подписан текущий пользователь.
-        Логика получения данных перенесена в SubscriptionSerializer.
-        """
         subs = Subscription.objects.filter(
             user=request.user).select_related("author")
-        page = self.paginate_queryset(subs)
-        serializer = self.get_serializer(
-            page, many=True, context={"request": request})
+        authors = [sub.author for sub in subs]
+        page = self.paginate_queryset(authors)
+        serializer = UserResponseSerializer(
+            page, many=True, context={"request": request}
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(
@@ -74,26 +67,33 @@ class UserViewSet(
         permission_classes=[IsAuthenticated]
     )
     def subscribe(self, request, pk=None):
-        """
-        Подписаться/отписаться на автора.
-        Вся валидация и формирование ответа — в SubscriptionSerializer.
-        """
+        user = request.user
         author = get_object_or_404(User, pk=pk)
-        data = {"user": request.user.id, "author": author.id}
 
-        if request.method == "POST":
-            serializer = SubscriptionSerializer(
-                data=data, context={"request": request})
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
+        if user == author:
             return Response(
-                serializer.to_representation(instance),
-                status=status.HTTP_201_CREATED
+                {"errors": "Нельзя подписаться на самого себя."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if request.method == "POST":
+            if Subscription.objects.filter(user=user, author=author).exists():
+                return Response(
+                    {"errors": "Вы уже подписаны на этого автора."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            Subscription.objects.create(user=user, author=author)
+            serializer = UserResponseSerializer(
+                author, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         # DELETE
-        serializer = SubscriptionSerializer(
-            data=data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        serializer.delete_instance()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        sub = Subscription.objects.filter(user=user, author=author).first()
+        if sub:
+            sub.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"errors": "Вы не были подписаны на этого пользователя."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
