@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -6,11 +7,10 @@ class User(AbstractUser):
     avatar = models.ImageField(
         upload_to="users/",
         blank=True,
-        null=True,
+        default='',
         verbose_name="Аватар",
     )
     email = models.EmailField("Почта", unique=True)
-    id = models.AutoField(primary_key=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
@@ -30,20 +30,16 @@ class User(AbstractUser):
         from recipes.models import RecipeIngredient
 
         ingredient_qs = (
-            RecipeIngredient.objects.filter(recipe__in_carts__user=self)
-            .values("ingredient__name", "ingredient__measurement_unit")
-            .annotate(total_amount=models.Sum("amount"))
-        )
-        result = []
-        for item in ingredient_qs:
-            result.append(
-                {
-                    "name": item["ingredient__name"],
-                    "measurement_unit": item["ingredient__measurement_unit"],
-                    "total": item["total_amount"],
-                }
+            RecipeIngredient.objects
+            .filter(recipe__in_carts__user=self)
+            .annotate(
+                name=models.F("ingredient__name"),
+                measurement_unit=models.F("ingredient__measurement_unit"),
+                total=models.Sum("amount"),
             )
-        return result
+            .values("name", "measurement_unit", "total")
+        )
+        return list(ingredient_qs)
 
 
 class Subscription(models.Model):
@@ -55,9 +51,21 @@ class Subscription(models.Model):
     )
 
     class Meta:
-        unique_together = ("user", "author")
+        constraints = [
+            models.UniqueConstraint(fields=["user", "author"],
+                                    name="unique_subscription")
+        ]
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
+
+    def clean(self):
+        super().clean()
+        if self.user == self.author:
+            raise ValidationError("Нельзя подписаться на себя.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user} подписан на {self.author}"
