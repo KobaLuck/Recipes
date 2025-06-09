@@ -4,10 +4,10 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from users.models import Subscription
 
 from api.pagination import DefaultPagination
 from api.serializers.users import UserCreateSerializer, UserResponseSerializer
-from users.models import Subscription
 
 User = get_user_model()
 

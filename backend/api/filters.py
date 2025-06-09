@@ -1,6 +1,5 @@
 from django_filters import (BooleanFilter, CharFilter, FilterSet,
                             ModelMultipleChoiceFilter, NumberFilter)
-
 from recipes.models import Ingredient, Recipe, Tag
 
 
