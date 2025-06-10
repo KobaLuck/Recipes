@@ -19,19 +19,11 @@ class RecipeInlineFilter(FilterSet):
 
     def filter_favorited(self, queryset, name, value):
         user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none() if value else queryset
-        if value:
-            return queryset.filter(in_favorites__user=user)
-        return queryset.exclude(in_favorites__user=user)
+        return queryset.filter(in_favorites__user=user)
 
     def filter_in_cart(self, queryset, name, value):
         user = self.request.user
-        if not user.is_authenticated:
-            return queryset.none() if value else queryset
-        if value:
-            return queryset.filter(in_carts__user=user)
-        return queryset.exclude(in_carts__user=user)
+        return queryset.filter(in_carts__user=user)
 
 
 class IngredientFilter(FilterSet):
