@@ -1,6 +1,6 @@
 from rest_framework.pagination import PageNumberPagination
 
-from .constants import SIZE_PAGE
+from api.constants import SIZE_PAGE
 
 
 class DefaultPagination(PageNumberPagination):
