@@ -2,6 +2,7 @@ from base64 import b64decode
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 
@@ -20,6 +21,9 @@ class Base64ImageField(serializers.ImageField):
 
 
 class UserCreateSerializer(DjoserUserSerializer):
+    first_name = serializers.CharField(required=True, max_length=150)
+    last_name = serializers.CharField(required=True, max_length=150)
+
     class Meta(DjoserUserSerializer.Meta):
         model = User
         fields = (
