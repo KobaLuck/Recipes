@@ -70,6 +70,7 @@ class Recipe(models.Model):
     image = models.ImageField(
         "Изображение",
         upload_to=IMAGE_UPLOAD_RECIPE,
+        default="",
     )
     text = models.TextField(
         "Описание рецепта",
@@ -202,6 +203,7 @@ class ShoppingCart(UserRecipeRelation):
         related_name='in_carts',
         verbose_name='Рецепт',
     )
+
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзина"
