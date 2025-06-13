@@ -173,6 +173,13 @@ class UserRecipeRelation(models.Model):
 
 
 class Favorite(UserRecipeRelation):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='in_favorites',
+        verbose_name='Рецепт',
+    )
+
     class Meta:
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
@@ -188,6 +195,13 @@ class Favorite(UserRecipeRelation):
 
 
 class ShoppingCart(UserRecipeRelation):
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='in_carts',
+        verbose_name='Рецепт',
+    )
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзина"
