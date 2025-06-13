@@ -1,4 +1,4 @@
-from django_filters import (BooleanFilter, CharFilter, FilterSet,
+from django_filters import (NumberFilter, CharFilter, FilterSet,
                             ModelMultipleChoiceFilter, NumberFilter)
 from recipes.models import Ingredient, Recipe, Tag
 
@@ -10,20 +10,22 @@ class RecipeInlineFilter(FilterSet):
         to_field_name="slug",
         queryset=Tag.objects.all(),
     )
-    is_favorited = BooleanFilter(method="filter_favorited")
-    is_in_shopping_cart = BooleanFilter(method="filter_in_cart")
+    is_favorited = NumberFilter(method="filter_favorited")
+    is_in_shopping_cart = NumberFilter(method="filter_in_cart")
 
     class Meta:
         model = Recipe
         fields = ["author", "tags", "is_favorited", "is_in_shopping_cart"]
 
     def filter_favorited(self, queryset, name, value):
-        user = self.request.user
-        return queryset.filter(in_favorites__user=user)
+        if value == 1 and self.request.user.is_authenticated:
+            return queryset.filter(in_favorites__user=self.request.user)
+        return queryset
 
     def filter_in_cart(self, queryset, name, value):
-        user = self.request.user
-        return queryset.filter(in_carts__user=user)
+        if value == 1 and self.request.user.is_authenticated:
+            return queryset.filter(in_carts__user=self.request.user)
+        return queryset
 
 
 class IngredientFilter(FilterSet):

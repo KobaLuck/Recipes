@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.serializers.users import UserResponseSerializer
+from api.serializers.users import UserResponseSerializer, Base64ImageField
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
@@ -80,6 +80,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientCreateSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
+    image = Base64ImageField(allow_empty_file=False)
 
     class Meta:
         model = Recipe
@@ -107,8 +108,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
+        RecipeIngredient.objects.filter(recipe=instance).delete()
         instance.tags.set(tags)
-        instance.recipe_ingredients.clear()
         RecipeIngredient.objects.bulk_create([
             RecipeIngredient(
                 recipe=instance,
