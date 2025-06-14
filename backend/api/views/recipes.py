@@ -21,9 +21,9 @@ class ShortLinkView(APIView):
 
     def get(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        absolute_url = request.build_absolute_uri(recipe.get_short_link())
-        return Response(
-            {"short-link": absolute_url}, status=status.HTTP_200_OK)
+        relative = recipe.get_short_link()
+        absolute = request.build_absolute_uri(relative)
+        return Response({"short-link": absolute}, status=status.HTTP_200_OK)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -49,9 +49,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeInlineFilter
 
     def get_permissions(self):
-        if self.action in ("list", "retrieve", "get_link"):
+        if self.action in ["list", "retrieve", "get_link"]:
             return [AllowAny()]
-        if self.action in ("favorite", "shopping_cart", "create"):
+        if self.action in ["favorite", "shopping_cart", "create"]:
             return [IsAuthenticated()]
         return [IsAuthorOrReadOnly()]
 

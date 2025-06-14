@@ -82,6 +82,8 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
+        through="TagInRecipe",
+        related_name="recipes",
         verbose_name="Теги",
     )
     cooking_time = models.PositiveSmallIntegerField(
@@ -216,3 +218,28 @@ class ShoppingCart(UserRecipeRelation):
 
     def __str__(self):
         return f"{self.user} добавил(а) «{self.recipe}» в корзину"
+
+
+class TagInRecipe(models.Model):
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        verbose_name="Тег",
+        help_text="Выберите тег рецепта",
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name="Рецепт",
+        help_text="Выберите рецепт",
+    )
+
+    class Meta:
+        verbose_name = "Тег в рецепте"
+        verbose_name_plural = "Теги в рецептах"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tag", "recipe"],
+                name="unique_tag_in_recipe"
+            )
+        ]

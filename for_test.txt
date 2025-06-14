@@ -3,9 +3,9 @@ superusers:
     mail: same
     password: 123
     
-{
-    "auth_token": "26cb5db273288fa0c28cbe380f74d39fc633bed8"
-}
+    {
+    "auth_token": "1b8d964388bf9f51ad68ffe121a17d193acea50d"
+    }
 
 users:
     blank

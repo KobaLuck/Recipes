@@ -105,6 +105,11 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ])
         return recipe
 
+    def to_representation(self, instance):
+        return RecipeListSerializer(
+            instance, context=self.context
+        ).data
+
     def update(self, instance, validated_data):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
@@ -121,8 +126,41 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def validate(self, data):
+        ingredients = data.get("ingredients", [])
+        if not ingredients:
+            raise serializers.ValidationError(
+                "Укажите хотя бы один ингредиент."
+            )
+
         ing_ids = [ing["id"].id for ing in data.get("ingredients", [])]
         if len(ing_ids) != len(set(ing_ids)):
             raise serializers.ValidationError(
-                "Ингредиенты должны быть уникальными.")
+                "Ингредиенты должны быть уникальными."
+            )
+
+        tags = data.get("tags", [])
+        if not tags:
+            raise serializers.ValidationError(
+                "У рецепта должен быть хотя бы один тег."
+            )
+
+        tag_ids = [tag.id for tag in tags]
+        if len(tag_ids) != len(set(tag_ids)):
+            raise serializers.ValidationError(
+                "Теги должны быть уникальными."
+            )
+
         return data
+
+
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient', queryset=Ingredient.objects.all()
+    )
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'name', 'measurement_unit', 'amount')

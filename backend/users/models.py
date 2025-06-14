@@ -7,7 +7,7 @@ class User(AbstractUser):
     avatar = models.ImageField(
         upload_to="users/",
         blank=True,
-        default='',
+        default="",
         verbose_name="Аватар",
     )
     email = models.EmailField("Почта", unique=True)
