@@ -3,11 +3,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_KEY", "some_default_secret_key")
+SECRET_KEY = 'django-insecure-4)odqw3w@y&k$)4sljis#hideypuukp*_k(9(lk9ol^q()$w#p'
 
-DEBUG = os.getenv("DEBUG", False) == "True"
+DEBUG = True
 
-ALLOWED_HOSTS = os.getenv("DJANGO_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
@@ -58,12 +58,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "django"),
-        "USER": os.getenv("POSTGRES_USER", "django"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", ""),
-        "PORT": os.getenv("DB_PORT", 5432),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
