@@ -40,15 +40,9 @@ jobs:
             python -m pip install --upgrade pip
             pip install flake8==6.0.0 flake8-isort==6.0.0
             pip install -r ./backend/requirements.txt
-<<<<<<< HEAD
         #- name: test with flake8
         #  run: |
         #    python -m flake8 backend/
-=======
-        - name: test with flake8
-          run: |
-            python -m flake8 backend/
->>>>>>> 04ddb57 (all tests is fine)
     build_and_push_backend_to_docker_hub:
         name: Push Docker image to Dockerhub
         runs-on: ubuntu-latest
@@ -137,12 +131,9 @@ jobs:
                 passphrase: ${{ secrets.SSH_PASSPHRASE }}
                 script: |
                     cd foodgram
-<<<<<<< HEAD
                     sudo docker-compose stop
                     sudo docker-compose rm backend
                     sudo docker-compose rm frontend
-=======
->>>>>>> 04ddb57 (all tests is fine)
                     sudo docker compose -f docker-compose.production.yml pull
                     sudo docker compose -f docker-compose.production.yml down
                     sudo docker compose -f docker-compose.production.yml up -d
@@ -181,9 +172,5 @@ jobs:
                 • Workflow: `${{ github.workflow }}`
                 • Check run: ${{ github.run_id }}
                 • URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-<<<<<<< HEAD
-=======
-                • time: ${{ job.startedAt }}
->>>>>>> 04ddb57 (all tests is fine)
             env:
             TZ: "Europe/Moscow"
