@@ -6,7 +6,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.pagination import DefaultPagination
-from api.serializers.recipes import RecipeMinifiedSerializer
 from api.serializers.users import (
     UserCreateSerializer,
     UserResponseSerializer,
